@@ -1,0 +1,457 @@
+<!doctype html>
+<html lang="tr" data-theme="dark">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover" />
+<meta name="theme-color" content="#0b1220" />
+<meta name="apple-mobile-web-app-capable" content="yes" />
+<title>Süper Lig Tahmin Merkezi</title>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.4/dist/chart.umd.min.js"></script>
+<style>
+:root{--bg:#0b1220;--p:#111c30;--p2:#16243d;--l:#263a59;--t:#edf3ff;--m:#9bb0cf;
+--blue:#2b7cf6;--cyan:#1ec8e0;--green:#25c281;--gold:#f5b62c;--purple:#9b6bf2;--red:#ef5350;
+--sh:0 10px 28px rgba(0,0,0,.3);--nav:72px}
+html[data-theme=light]{--bg:#f2f6fa;--p:#fff;--p2:#f6f9fd;--l:#e2e9f2;--t:#14213d;--m:#64758c;--sh:0 8px 22px rgba(16,42,77,.09)}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+body{margin:0;background:var(--bg);color:var(--t);
+font:15px/1.5 -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Arial,sans-serif;
+padding-bottom:calc(var(--nav) + env(safe-area-inset-bottom));overscroll-behavior-y:contain}
+.wrap{max-width:1200px;margin:0 auto;padding:12px}
+.hd{position:sticky;top:0;z-index:50;background:var(--bg);padding:10px 12px 8px;
+border-bottom:1px solid var(--l);display:flex;justify-content:space-between;align-items:center;gap:8px}
+.hd h1{margin:0;font-size:17px;font-weight:800;letter-spacing:-.2px}
+.hd .sub{font-size:11px;color:var(--m);display:flex;align-items:center;margin-top:2px}
+.ico{width:40px;height:40px;border-radius:12px;background:var(--p);border:1px solid var(--l);
+color:var(--t);font-size:17px;display:grid;place-items:center;cursor:pointer;flex:none}
+.dot{width:7px;height:7px;border-radius:50%;background:var(--gold);display:inline-block;margin-right:5px;flex:none}
+.dot.live{background:var(--green);animation:pulse 1.8s infinite}
+.dot.dead{background:var(--red)}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.2}}
+.fbar{display:flex;gap:8px;margin:12px 0;overflow-x:auto;scrollbar-width:none;padding-bottom:2px}
+.fbar::-webkit-scrollbar{display:none}
+select{background:var(--p);color:var(--t);border:1px solid var(--l);border-radius:12px;
+padding:11px 13px;font-size:14px;font-family:inherit;font-weight:600;flex:none;min-height:44px}
+.pills{display:flex;gap:7px;overflow-x:auto;scrollbar-width:none;padding:2px 0 6px}
+.pills::-webkit-scrollbar{display:none}
+.pill{flex:none;padding:9px 15px;border-radius:999px;background:var(--p);border:1px solid var(--l);
+font-size:13px;font-weight:700;cursor:pointer;min-height:40px;display:grid;place-items:center;white-space:nowrap}
+.pill.on{background:var(--blue);border-color:var(--blue);color:#fff}
+.card{background:var(--p);border:1px solid var(--l);border-radius:16px;padding:14px;
+box-shadow:var(--sh);margin-bottom:12px;min-width:0}
+.title{font-weight:800;font-size:14px;margin-bottom:11px;display:flex;justify-content:space-between;
+gap:8px;align-items:center;flex-wrap:wrap}
+.muted{color:var(--m);font-size:11.5px;font-weight:600}
+.kpis{display:grid;grid-template-columns:1fr 1fr;gap:9px;margin-bottom:12px}
+.kpi{background:var(--p);border:1px solid var(--l);border-radius:14px;padding:12px;
+border-top:3px solid var(--blue);box-shadow:var(--sh)}
+.kpi:nth-child(2){border-top-color:var(--gold)}
+.kpi:nth-child(3){border-top-color:var(--green)}
+.kpi:nth-child(4){border-top-color:var(--purple)}
+.kpi span{font-size:10.5px;color:var(--m);font-weight:700;text-transform:uppercase;letter-spacing:.03em}
+.kpi b{display:block;font-size:20px;font-weight:800;margin-top:3px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.lb{display:flex;align-items:center;gap:11px;padding:11px 4px;border-bottom:1px solid var(--l)}
+.lb:last-child{border-bottom:0}
+.rk{width:30px;height:30px;border-radius:10px;background:var(--p2);display:grid;place-items:center;
+font-weight:800;font-size:13px;flex:none}
+.rk.g1{background:rgba(245,182,44,.2);color:var(--gold)}
+.rk.g2{background:rgba(155,176,207,.2)}
+.rk.g3{background:rgba(205,127,50,.2);color:#e09a52}
+.lbn{flex:1;min-width:0;font-weight:700;font-size:14px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.lbd{font-size:11px;color:var(--m);font-weight:600}
+.pt{min-width:52px;text-align:center;font-weight:800;border-radius:9px;padding:6px 9px;font-size:13.5px;flex:none}
+.pt-hi{background:rgba(37,194,129,.18);color:#5fe3ad}
+.pt-md{background:rgba(245,182,44,.18);color:#ffd16a}
+.pt-lo{background:rgba(239,83,80,.13);color:#ff8f8c}
+.mc{border:1px solid var(--l);border-radius:14px;margin-bottom:9px;overflow:hidden;background:var(--p2)}
+.mch{display:flex;align-items:center;gap:9px;padding:12px;cursor:pointer;min-height:56px}
+.mct{flex:1;min-width:0}
+.mcn{font-weight:700;font-size:13.5px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.mcs{font-weight:800;font-size:15px;color:var(--cyan);flex:none;padding:3px 10px;
+background:rgba(30,200,224,.12);border-radius:8px}
+.arw{color:var(--m);font-size:12px;flex:none;transition:transform .2s}
+.mc.open .arw{transform:rotate(90deg)}
+.mcb{display:none;padding:0 12px 10px}
+.mc.open .mcb{display:block}
+.mrow{display:flex;align-items:center;gap:9px;padding:9px 0;border-top:1px solid var(--l)}
+.mrn{flex:1;min-width:0;font-size:13px;font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.gs{font-weight:800;color:var(--cyan);font-size:13px;flex:none;min-width:38px;text-align:center}
+.chip{font-weight:800;border-radius:6px;padding:2px 7px;font-size:10.5px;flex:none;
+background:rgba(43,124,246,.15);color:var(--blue);min-width:24px;text-align:center}
+.ou{font-size:10px;color:var(--m);font-weight:700;flex:none;min-width:30px}
+.chart{position:relative;height:260px}
+.chart.tall{height:320px}
+.tab{display:none}.tab.on{display:block;animation:fade .25s}
+@keyframes fade{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
+.nav{position:fixed;left:0;right:0;bottom:0;z-index:60;display:grid;grid-template-columns:repeat(4,1fr);
+background:var(--p);border-top:1px solid var(--l);padding-bottom:env(safe-area-inset-bottom);
+backdrop-filter:blur(12px)}
+.nb{padding:9px 4px 8px;text-align:center;cursor:pointer;border:0;background:none;color:var(--m);font-family:inherit}
+.nb i{display:block;font-size:19px;font-style:normal;line-height:1.2}
+.nb span{font-size:10px;font-weight:700}
+.nb.on{color:var(--blue)}
+.setup{background:rgba(245,182,44,.07);border:1px solid rgba(245,182,44,.3);border-radius:14px;
+padding:14px;margin-bottom:12px;font-size:13px}
+.setup h3{margin:0 0 8px;font-size:14px;color:var(--gold)}
+textarea,input{width:100%;background:var(--p);color:var(--t);border:1px solid var(--l);
+border-radius:11px;padding:10px;font-size:13px;font-family:inherit;margin-bottom:8px}
+textarea{min-height:100px;font-family:Consolas,monospace;font-size:12px}
+.btn{background:var(--blue);color:#fff;border:0;border-radius:11px;padding:11px 15px;
+font-weight:700;font-size:13.5px;cursor:pointer;font-family:inherit;min-height:44px}
+.btn.gh{background:var(--p);color:var(--t);border:1px solid var(--l)}
+.log{font-family:Consolas,monospace;font-size:11px;background:var(--p2);border-radius:9px;
+padding:9px;margin-top:9px;max-height:130px;overflow:auto}
+.ok{color:var(--green)}.no{color:#ff8f8c}
+.hide{display:none}
+.empty{text-align:center;padding:26px 12px;color:var(--m);font-size:13px}
+@media(min-width:768px){
+  :root{--nav:0px}
+  body{padding-bottom:0}
+  .wrap{padding:18px}
+  .kpis{grid-template-columns:repeat(4,1fr)}
+  .nav{position:static;grid-template-columns:repeat(4,auto);justify-content:center;
+    border:1px solid var(--l);border-radius:14px;margin:0 0 14px;gap:4px;padding:5px}
+  .nb{padding:9px 20px;border-radius:10px}
+  .nb.on{background:var(--blue);color:#fff}
+  .nb i{display:inline;margin-right:6px;font-size:15px}
+  .nb span{font-size:13px}
+  .grid2{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+  .hd h1{font-size:21px}
+}
+</style>
+</head>
+<body>
+
+<div class="hd">
+  <div style="min-width:0">
+    <h1>⚽ Süper Lig Tahmin</h1>
+    <div class="sub"><span class="dot" id="dot"></span><span id="status">Yükleniyor…</span></div>
+  </div>
+  <div style="display:flex;gap:7px">
+    <button class="ico" id="theme">☀</button>
+    <button class="ico" id="reload">⟳</button>
+    <button class="ico" id="settings">⚙</button>
+  </div>
+</div>
+
+<div class="wrap">
+
+<div class="setup hide" id="setup">
+  <h3>⚙ Veri Kaynağı</h3>
+  <input id="pubUrl" placeholder="Farklı yayın bağlantısı (opsiyonel)" />
+  <div style="display:flex;gap:7px;margin-bottom:12px">
+    <button class="btn" id="savePub">Kaydet</button>
+    <button class="btn gh" id="clearPub">Varsayılan</button>
+  </div>
+  <b style="font-size:12.5px">Veri gelmezse: PUANLAR sekmesini kopyala → yapıştır</b>
+  <textarea id="paste" placeholder="Ctrl+C ile kopyaladığın hücreleri buraya yapıştır…"></textarea>
+  <button class="btn" id="loadPaste">Veriyi Yükle</button>
+  <div class="log" id="log"></div>
+</div>
+
+<nav class="nav" id="nav">
+  <button class="nb on" data-t="ozet"><i>🏠</i><span>Özet</span></button>
+  <button class="nb" data-t="mac"><i>⚽</i><span>Maçlar</span></button>
+  <button class="nb" data-t="graf"><i>📊</i><span>Grafik</span></button>
+  <button class="nb" data-t="oyuncu"><i>👤</i><span>Oyuncu</span></button>
+</nav>
+
+<div class="pills" id="pills"></div>
+
+<section class="tab on" id="t-ozet">
+  <div class="kpis">
+    <div class="kpi"><span>Hafta</span><b id="kWeek">–</b></div>
+    <div class="kpi"><span>Haftanın Lideri</span><b id="kBest">–</b></div>
+    <div class="kpi"><span>Oynanan Maç</span><b id="kPlayed">–</b></div>
+    <div class="kpi"><span>Dağıtılan Puan</span><b id="kTotal">–</b></div>
+  </div>
+  <div class="card">
+    <div class="title">🏆 Haftalık Sıralama <span class="muted" id="sumMeta"></span></div>
+    <div id="lbBody"></div>
+  </div>
+  <div class="card">
+    <div class="title">📈 Genel Sıralama <span class="muted">tüm haftalar</span></div>
+    <div id="allBody"></div>
+  </div>
+</section>
+
+<section class="tab" id="t-mac">
+  <div class="card">
+    <div class="title">⚽ Maç Merkezi <span class="muted">dokun · detay aç</span></div>
+    <div id="mcBody"></div>
+  </div>
+</section>
+
+<section class="tab" id="t-graf">
+  <div class="card">
+    <div class="title">📊 Haftalık Puan Performansı <span class="muted">hafta hafta</span></div>
+    <div class="chart tall"><canvas id="perfChart"></canvas></div>
+  </div>
+  <div class="card">
+    <div class="title">🏁 Kümülatif Yarış <span class="muted">toplam puan seyri</span></div>
+    <div class="chart"><canvas id="cumChart"></canvas></div>
+  </div>
+  <div class="grid2">
+    <div class="card">
+      <div class="title">🥇 Seçili Hafta</div>
+      <div class="chart"><canvas id="weekChart"></canvas></div>
+    </div>
+    <div class="card">
+      <div class="title">🔥 Maç Başına Dağıtılan Puan</div>
+      <div class="chart"><canvas id="matchChart"></canvas></div>
+    </div>
+  </div>
+</section>
+
+<section class="tab" id="t-oyuncu">
+  <div class="fbar"><select id="player"></select></div>
+  <div class="kpis">
+    <div class="kpi"><span>Toplam Puan</span><b id="pTotal">–</b></div>
+    <div class="kpi"><span>Bu Hafta</span><b id="pWeek">–</b></div>
+    <div class="kpi"><span>Maç Başı Ort.</span><b id="pAvg">–</b></div>
+    <div class="kpi"><span>Puan Alınan Maç</span><b id="pHit">–</b></div>
+  </div>
+  <div class="card">
+    <div class="title">🎯 Puanların Geldiği Maçlar <span class="muted" id="pMeta"></span></div>
+    <div id="pBody"></div>
+  </div>
+  <div class="card">
+    <div class="title">📉 Haftalık Seyir</div>
+    <div class="chart"><canvas id="pChart"></canvas></div>
+  </div>
+</section>
+
+<div class="muted" style="text-align:center;padding:6px 0 10px" id="foot"></div>
+</div>
+
+<script>
+const PUB='https://docs.google.com/spreadsheets/d/e/2PACX-1vTNC9wBgAY_6TN6fRd6Nqbf42bNqSnp-TDSdJMbcdbUegl8pkits9E2OTa2_1qBK_1uCQ16vhCt-PEb/pub?gid=1288632529&single=true&output=csv';
+const FIXED=5;
+const $=i=>document.getElementById(i);
+const nf=n=>new Intl.NumberFormat('tr-TR',{maximumFractionDigits:1}).format(n);
+const esc=s=>String(s??'').replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]));
+const COLORS=['#2b7cf6','#1ec8e0','#25c281','#f5b62c','#9b6bf2','#ef5350','#ff9f40','#4bc0c0'];
+let MODEL=null,charts={},timer=null,WEEK=null;
+
+const store={get:()=>{try{return localStorage.getItem('slt11')||''}catch(e){return''}},
+  set:v=>{try{localStorage.setItem('slt11',v)}catch(e){}},
+  del:()=>{try{localStorage.removeItem('slt11')}catch(e){}}};
+function log(m,ok){const d=document.createElement('div');d.className=ok?'ok':'no';
+  d.textContent=(ok?'✓ ':'✗ ')+m;$('log').appendChild(d);$('log').scrollTop=9e9}
+
+function endpoints(){
+  const u=store.get()||PUB, t=Date.now(), b=u+(u.includes('?')?'&':'?')+'x='+t;
+  return [
+    {n:'Doğrudan bağlantı', u:b},
+    {n:'Vekil · allorigins', u:'https://api.allorigins.win/raw?url='+encodeURIComponent(b)},
+    {n:'Vekil · corsproxy', u:'https://corsproxy.io/?'+encodeURIComponent(b)},
+    {n:'Vekil · codetabs', u:'https://api.codetabs.com/v1/proxy?quest='+encodeURIComponent(b)}
+  ];
+}
+function fixEnc(s){
+  if(!/Ã|Å|Ä/.test(s)) return s;
+  try{
+    const b=new Uint8Array([...s].map(c=>c.charCodeAt(0)&0xff));
+    return new TextDecoder('utf-8').decode(b);
+  }catch(e){return s}
+}
+async function fetchText(u){
+  const r=await fetch(u);
+  if(!r.ok) throw new Error('HTTP '+r.status);
+  const buf=await r.arrayBuffer();
+  let txt=new TextDecoder('utf-8').decode(buf);
+  if(/Ã‡|Ä°|Åž/.test(txt)) txt=fixEnc(txt);
+  return txt;
+}
+
+async function load(){
+  $('log').innerHTML='';setStatus('gold','Veri çekiliyor…');
+  for(const e of endpoints()){
+    try{
+      const t=await fetchText(e.u);
+      if(/^\s*<(!doctype|html)/i.test(t))throw new Error('HTML döndü (giriş istiyor)');
+      apply(csvGrid(t));log(e.n+' başarılı',true);
+      setStatus('live','Canlı · '+MODEL.rows.length+' maç, '+MODEL.weeks.length+' hafta');return;
+    }catch(err){log(e.n+' — '+err.message,false)}
+  }
+  setStatus('dead','Canlı veri alınamadı');
+  $('setup').classList.remove('hide');
+  if(!MODEL){
+    $('lbBody').innerHTML='<div class="empty">Canlı veri alınamadı.<br>⚙ düğmesinden kayıtları kontrol et veya veriyi elle yapıştır.</div>';
+    $('mcBody').innerHTML='<div class="empty">Veri yok</div>';
+  }
+}
+
+function csvGrid(txt){const rows=[];let row=[],c='',q=false;
+  for(let i=0;i<txt.length;i++){const ch=txt[i];
+    if(q){if(ch==='"'){if(txt[i+1]==='"'){c+='"';i++}else q=false}else c+=ch}
+    else if(ch==='"')q=true;
+    else if(ch===','){row.push(c.trim());c=''}
+    else if(ch==='\n'){row.push(c.trim());rows.push(row);row=[];c=''}
+    else if(ch!=='\r')c+=ch}
+  row.push(c.trim());if(row.length>1||row[0]!=='')rows.push(row);return rows}
+const tsvGrid=t=>t.split(/\r?\n/).filter(l=>l.trim()!=='').map(l=>l.split('\t').map(c=>c.trim()));
+
+function parse(grid){
+  let s=-1;
+  for(let i=0;i<grid.length;i++){const a=String(grid[i][0]||'').replace(',','.');
+    if(a!==''&&!isNaN(Number(a))&&String(grid[i][2]||'')!==''){s=i;break}}
+  if(s<0)throw new Error('Veri satırı yok');
+  let nr=null;
+  for(let i=s-1;i>=0;i--){const r=grid[i]||[];
+    if(r.slice(FIXED).filter(x=>x!=='').length>=4){nr=r;break}}
+  if(!nr)throw new Error('Oyuncu satırı yok');
+  const w=Math.max(nr.length,...grid.slice(s).map(r=>r.length)),players=[];
+  for(let c=FIXED;c<w;c++){const v=String(nr[c]||'').trim();if(v&&!players.includes(v))players.push(v)}
+  const N=players.length;if(!N)throw new Error('Oyuncu yok');
+  const rows=[];
+  for(let i=s;i<grid.length;i++){const r=grid[i];if(!r)continue;
+    const wk=Number(String(r[0]||'').replace(',','.'));
+    if(String(r[0]||'')===''||isNaN(wk))continue;
+    const h=r[2]||'',a=r[4]||'';if(!h&&!a)continue;
+    const pts=[],sc=[],sd=[],ou=[];
+    for(let k=0;k<N;k++){pts.push(num(r[FIXED+k]));sc.push(r[FIXED+N+k]||'');
+      sd.push(r[FIXED+2*N+k]||'');ou.push(r[FIXED+3*N+k]||'')}
+    rows.push({w:wk,home:h,away:a,score:r[3]||'',pts,sc,sd,ou,played:pts.some(v=>v!==null)})}
+  if(!rows.length)throw new Error('Maç yok');
+  const weeks=[...new Set(rows.map(r=>r.w))].sort((a,b)=>a-b);
+  const pw=[...new Set(rows.filter(r=>r.played).map(r=>r.w))];
+  return{players,rows,weeks,current:pw.length?Math.max(...pw):weeks[weeks.length-1]}}
+function num(v){if(v===''||v==null)return null;
+  const n=Number(String(v).replace(/\s/g,'').replace(',','.'));return isNaN(n)?null:n}
+
+function apply(g){MODEL=parse(g);build()}
+function setStatus(k,t){$('dot').className='dot'+(k==='live'?' live':k==='dead'?' dead':'');$('status').textContent=t}
+
+function build(){
+  if(WEEK===null||!MODEL.weeks.includes(WEEK))WEEK=MODEL.current;
+  $('pills').innerHTML=MODEL.weeks.slice().reverse().map(w=>
+    `<div class="pill${w===WEEK?' on':''}" data-w="${w}">${w}. Hf${w===MODEL.current?' •':''}</div>`).join('');
+  [...document.querySelectorAll('.pill')].forEach(p=>p.onclick=()=>{
+    WEEK=Number(p.dataset.w);build();window.scrollTo({top:0,behavior:'smooth'});});
+  const sel=$('player'),pv=sel.value;sel.innerHTML='';
+  MODEL.players.forEach(n=>sel.add(new Option(n,n)));
+  if(pv&&MODEL.players.includes(pv))sel.value=pv;
+  render();
+}
+const wr=()=>MODEL.rows.filter(r=>r.w===WEEK);
+const cls=v=>v===null?'':(v>=50?'pt-hi':v>0?'pt-md':'pt-lo');
+const wSum=(i,w)=>MODEL.rows.filter(r=>r.w===w).reduce((a,r)=>a+(r.pts[i]||0),0);
+const tSum=i=>MODEL.rows.reduce((a,r)=>a+(r.pts[i]||0),0);
+
+function render(){
+  if(!MODEL)return;
+  const rows=wr();
+  const tot=MODEL.players.map((n,i)=>({n,i,v:wSum(i,WEEK)})).sort((a,b)=>b.v-a.v);
+  const all=MODEL.players.map((n,i)=>({n,i,v:tSum(i)})).sort((a,b)=>b.v-a.v);
+
+  $('kWeek').textContent=WEEK+'. Hafta';
+  $('kBest').textContent=tot.length?tot[0].n.split(' ')[0]:'–';
+  $('kPlayed').textContent=rows.filter(r=>r.played).length+'/'+rows.length;
+  $('kTotal').textContent=nf(tot.reduce((a,b)=>a+b.v,0));
+  $('sumMeta').textContent=WEEK+'. hafta';
+
+  $('lbBody').innerHTML=tot.map((t,i)=>row(i,t.n,
+    i===0?'lider':'-'+nf(tot[0].v-t.v),t.v)).join('');
+  $('allBody').innerHTML=all.map((t,i)=>row(i,t.n,
+    i===0?'lider':'-'+nf(all[0].v-t.v),t.v)).join('');
+
+  $('mcBody').innerHTML=rows.length?rows.map((r,ri)=>mc(r,ri)).join(''):'<div class="empty">Bu haftada maç yok</div>';
+  [...document.querySelectorAll('.mch')].forEach(h=>h.onclick=()=>h.parentElement.classList.toggle('open'));
+
+  renderPlayer();charts_();
+  $('foot').textContent='SÜPER LİG TAHMİN · Onur Şen';
+}
+function row(i,n,d,v){
+  return `<div class="lb"><div class="rk ${i<3?'g'+(i+1):''}">${i<3?['🥇','🥈','🥉'][i]:i+1}</div>
+  <div class="lbn">${esc(n)}<div class="lbd">${d}</div></div>
+  <div class="pt ${cls(v)}">${nf(v)}</div></div>`;
+}
+function mc(r,ri){
+  const tp=r.pts.reduce((a,v)=>a+(v||0),0);
+  const ord=MODEL.players.map((n,i)=>({n,i,v:r.pts[i]})).sort((a,b)=>(b.v||0)-(a.v||0));
+  return `<div class="mc"><div class="mch">
+    <div class="mct"><div class="mcn">${esc(r.home)} - ${esc(r.away)}</div>
+      <div class="lbd">${nf(tp)} puan dağıtıldı</div></div>
+    <div class="mcs">${esc(r.score||'–')}</div><div class="arw">▸</div></div>
+    <div class="mcb">${ord.map(o=>
+      `<div class="mrow"><div class="mrn">${esc(o.n)}</div>
+       <div class="gs">${esc(r.sc[o.i]||'–')}</div>
+       ${r.sd[o.i]?`<div class="chip">${esc(r.sd[o.i])}</div>`:''}
+       <div class="ou">${esc(r.ou[o.i]||'')}</div>
+       <div class="pt ${cls(o.v)}">${o.v===null?'–':nf(o.v)}</div></div>`).join('')}</div></div>`;
+}
+function renderPlayer(){
+  const n=$('player').value||MODEL.players[0],i=MODEL.players.indexOf(n);
+  if(i<0)return;
+  const vals=MODEL.rows.map(r=>r.pts[i]),hit=vals.filter(v=>v>0).length;
+  const done=vals.filter(v=>v!==null).length||1;
+  $('pTotal').textContent=nf(tSum(i));
+  $('pWeek').textContent=nf(wSum(i,WEEK));
+  $('pAvg').textContent=nf(tSum(i)/done);
+  $('pHit').textContent=hit+'/'+done;
+  $('pMeta').textContent=WEEK+'. hafta';
+  const rows=wr();
+  $('pBody').innerHTML=rows.length?rows.map(r=>
+    `<div class="lb"><div class="lbn">${esc(r.home)} - ${esc(r.away)}
+     <div class="lbd">sonuç ${esc(r.score||'–')} · tahmin ${esc(r.sc[i]||'–')} ${esc(r.sd[i]||'')} ${esc(r.ou[i]||'')}</div></div>
+     <div class="pt ${cls(r.pts[i])}">${r.pts[i]===null?'–':nf(r.pts[i])}</div></div>`).join('')
+    :'<div class="empty">Maç yok</div>';
+  draw('pChart','line',{labels:MODEL.weeks.map(w=>w+'.Hf'),
+    datasets:[{label:n.split(' ')[0],data:MODEL.weeks.map(w=>wSum(i,w)),
+      borderColor:COLORS[i%COLORS.length],backgroundColor:COLORS[i%COLORS.length]+'30',
+      fill:true,tension:.35,borderWidth:3,pointRadius:4}]},{});
+}
+function charts_(){
+  const rows=wr(),W=MODEL.weeks;
+  draw('perfChart','bar',{labels:W.map(w=>w+'. Hf'),
+    datasets:MODEL.players.map((n,i)=>({label:n.split(' ')[0],
+      data:W.map(w=>wSum(i,w)),backgroundColor:COLORS[i%COLORS.length],borderRadius:5}))},{});
+  let run=MODEL.players.map(()=>0);
+  const cum=MODEL.players.map((n,i)=>({label:n.split(' ')[0],data:[],
+    borderColor:COLORS[i%COLORS.length],backgroundColor:COLORS[i%COLORS.length],
+    tension:.35,borderWidth:2.5,pointRadius:3}));
+  W.forEach(w=>MODEL.players.forEach((n,i)=>{run[i]+=wSum(i,w);cum[i].data.push(run[i])}));
+  draw('cumChart','line',{labels:W.map(w=>w+'. Hf'),datasets:cum},{});
+  const t=MODEL.players.map((n,i)=>({n,v:wSum(i,WEEK)})).sort((a,b)=>b.v-a.v);
+  draw('weekChart','bar',{labels:t.map(x=>x.n.split(' ')[0]),
+    datasets:[{data:t.map(x=>x.v),backgroundColor:t.map((_,i)=>COLORS[i%COLORS.length]),borderRadius:6}]},
+    {indexAxis:'y',plugins:{legend:{display:false}}});
+  draw('matchChart','bar',{labels:rows.map(r=>r.home.slice(0,7)+'-'+r.away.slice(0,7)),
+    datasets:[{data:rows.map(r=>r.pts.reduce((a,v)=>a+(v||0),0)),backgroundColor:'#f5b62c',borderRadius:5}]},
+    {indexAxis:'y',plugins:{legend:{display:false}}});
+}
+function draw(id,type,data,extra){
+  if(charts[id])charts[id].destroy();
+  const c=getComputedStyle(document.body),tc=c.getPropertyValue('--m'),gc=c.getPropertyValue('--l');
+  charts[id]=new Chart($(id),{type,data,options:Object.assign({
+    responsive:true,maintainAspectRatio:false,
+    plugins:{legend:{position:'bottom',labels:{color:tc,usePointStyle:true,boxWidth:8,
+      font:{size:11},padding:10}}},
+    scales:{x:{grid:{display:false},ticks:{color:tc,font:{size:10}}},
+      y:{beginAtZero:true,grid:{color:gc},ticks:{color:tc,font:{size:10}}}}
+  },extra)});
+}
+
+[...document.querySelectorAll('.nb')].forEach(b=>b.onclick=()=>{
+  document.querySelectorAll('.nb').forEach(x=>x.classList.remove('on'));
+  document.querySelectorAll('.tab').forEach(x=>x.classList.remove('on'));
+  b.classList.add('on');$('t-'+b.dataset.t).classList.add('on');
+  window.scrollTo({top:0,behavior:'smooth'});
+});
+$('player').onchange=renderPlayer;
+$('reload').onclick=load;
+$('settings').onclick=()=>$('setup').classList.toggle('hide');
+$('theme').onclick=()=>{const l=document.documentElement.getAttribute('data-theme')==='light';
+  document.documentElement.setAttribute('data-theme',l?'dark':'light');if(MODEL)render()};
+$('savePub').onclick=()=>{const v=$('pubUrl').value.trim();if(v){store.set(v);log('Kaydedildi',true);load()}};
+$('clearPub').onclick=()=>{store.del();$('pubUrl').value='';log('Varsayılan',true);load()};
+$('loadPaste').onclick=()=>{const v=$('paste').value;
+  if(!v.trim()){log('Boş',false);return}
+  try{apply(tsvGrid(v));log('Yüklendi',true);setStatus('gold','Elle yüklenen veri');$('setup').classList.add('hide')}
+  catch(e){log(e.message,false)}};
+$('pubUrl').value=store.get();
+timer=setInterval(load,60000);
+load();
+</script>
+</body>
+</html>
